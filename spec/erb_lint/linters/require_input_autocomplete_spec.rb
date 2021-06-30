@@ -13,7 +13,7 @@ describe ERBLint::Linters::RequireInputAutocomplete do
   let(:corrected_content) { corrector.corrected_content }
   before { linter.run(processed_source) }
 
-  describe 'offenses' do
+  describe 'pure HTML linting' do
     subject { offenses }
 
     context 'when input type requires autocomplete attribute and it is present' do
@@ -32,6 +32,82 @@ describe ERBLint::Linters::RequireInputAutocomplete do
         expect(subject).to(eq([
           build_offense(1..5,
             "Input tag is missing an autocomplete attribute. If no autocomplete behaviour "\
+            "is desired, use the value `off` or `nope`."),
+        ]))
+      end
+    end
+  end
+
+  describe 'input field helpers linting' do
+    subject { offenses }
+
+    context 'usage of date_field_tag with autocomplete' do
+      let(:file) { <<~FILE }
+        <br />
+        <%= date_field_tag autocomplete: "foo" do %>
+        FILE
+
+      it { expect(subject).to(eq([])) }
+    end
+
+    context 'usage of text_field_tag with autocomplete' do
+      let(:file) { <<~FILE }
+        <br />
+        <%= text_field_tag autocomplete: "foo" do %>
+        FILE
+
+      it { expect(subject).to(eq([])) }
+    end
+
+    context 'usage of week_field_tag with autocomplete' do
+      let(:file) { <<~FILE }
+        <br />
+        <%= week_field_tag autocomplete: "foo" do %>
+        FILE
+
+      it { expect(subject).to(eq([])) }
+    end
+
+    context 'usage of date_field_tag without autocomplete value' do
+      let(:file) { <<~FILE }
+        <br />
+        <%= date_field_tag do %>
+        FILE
+
+      it do
+        expect(subject).to(eq([
+          build_offense(7..30,
+            "Input field helper is missing an autocomplete attribute. If no autocomplete behaviour "\
+            "is desired, use the value `off` or `nope`."),
+        ]))
+      end
+    end
+
+    context 'usage of text_field_tag without autocomplete value' do
+      let(:file) { <<~FILE }
+        <br />
+        <%= text_field_tag do %>
+        FILE
+
+      it do
+        expect(subject).to(eq([
+          build_offense(7..30,
+            "Input field helper is missing an autocomplete attribute. If no autocomplete behaviour "\
+            "is desired, use the value `off` or `nope`."),
+        ]))
+      end
+    end
+
+    context 'usage of week_field_tag without autocomplete value' do
+      let(:file) { <<~FILE }
+        <br />
+        <%= week_field_tag do %>
+        FILE
+
+      it do
+        expect(subject).to(eq([
+          build_offense(7..30,
+            "Input field helper is missing an autocomplete attribute. If no autocomplete behaviour "\
             "is desired, use the value `off` or `nope`."),
         ]))
       end
